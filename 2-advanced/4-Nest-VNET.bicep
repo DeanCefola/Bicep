@@ -1,10 +1,10 @@
 param Prefix string
 param vnetName string
-param vnetIPs array 
-param vnetSubIPs string
+param vnetIPs string
 param nsg1Id string
 param location string
   
+var vnetSubIPs = (vnetIPs)
 resource vnet1 'Microsoft.Network/virtualNetworks@2020-06-01' = {
   name: vnetName
   location: resourceGroup().location

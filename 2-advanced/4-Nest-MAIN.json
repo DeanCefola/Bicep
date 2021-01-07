@@ -13,8 +13,9 @@
       "type": "secureString"
     },
     "vnetIPs": {
-      "type": "array",
-      "defaultValue": [
+      "type": "string",
+      "defaultValue": "10.0.0.0/8",
+      "allowedValues": [
         "10.0.0.0/8",
         "10.1.0.0/8",
         "172.18.0.0/16",
@@ -24,8 +25,9 @@
       ]
     },
     "VMSize": {
-      "type": "array",
-      "defaultValue": [
+      "type": "string",
+      "defaultValue": "Small",
+      "allowedValues": [
         "Small",
         "Medium",
         "Large"
@@ -33,7 +35,11 @@
     },
     "OperatingSystem": {
       "type": "string",
-      "defaultValue": "Client"
+      "defaultValue": "Client",
+      "allowedValues": [
+        "Client",
+        "Server"
+      ]
     }
   },
   "functions": [],
@@ -54,51 +60,26 @@
     },
     "VM_Images": {
       "Client": {
-        "Publisher": {
-          "name": "publisher",
-          "value": "microsoftwindowsdesktop"
-        },
-        "offer": {
-          "name": "offer",
-          "value": "office-365"
-        },
-        "sku": {
-          "name": "sku",
-          "value": "20h1-evd-o365pp"
-        },
-        "version": {
-          "name": "version",
-          "value": "latest"
-        }
+        "Publisher": "microsoftwindowsdesktop",
+        "offer": "office-365",
+        "sku": "20h1-evd-o365pp",
+        "version": "latest"
       },
       "Server": {
-        "Publisher": {
-          "value": "MicrosoftWindowsServer"
-        },
-        "offer": {
-          "value": "WindowsServer"
-        },
-        "sku": {
-          "value": "2019-Datacenter-smalldisk"
-        },
-        "version": {
-          "value": "latest"
-        }
+        "Publisher": "MicrosoftWindowsServer",
+        "offer": "WindowsServer",
+        "sku": "2019-Datacenter-smalldisk",
+        "version": "latest"
       }
     },
     "License": {
       "Server": {
-        "value": "Windows_Server"
+        "License": "Windows_Server"
       },
       "Client": {
-        "value": "Windows_Client"
-      },
-      "Multi": {
-        "value": "Windows_Client"
+        "License": "Windows_Client"
       }
-    },
-    "Size": "[format('{0}{1}', variables('vmHWSize'), parameters('VMSize'))]",
-    "test": "[variables('VM_Images')[parameters('OperatingSystem')].Publisher]"
+    }
   },
   "resources": [
     {
@@ -175,9 +156,6 @@
           "vnetIPs": {
             "value": "[parameters('vnetIPs')]"
           },
-          "vnetSubIPs": {
-            "value": "10.0.50.0/24"
-          },
           "nsg1Id": {
             "value": "[reference(extensionResourceId(resourceGroup().id, 'Microsoft.Resources/deployments', 'nsg1'), '2019-10-01').outputs.nsg1Id.value]"
           }
@@ -193,9 +171,6 @@
               "type": "string"
             },
             "vnetIPs": {
-              "type": "array"
-            },
-            "vnetSubIPs": {
               "type": "string"
             },
             "nsg1Id": {
@@ -206,6 +181,9 @@
             }
           },
           "functions": [],
+          "variables": {
+            "vnetSubIPs": "[parameters('vnetIPs')]"
+          },
           "resources": [
             {
               "type": "Microsoft.Network/virtualNetworks",
@@ -220,7 +198,7 @@
                   {
                     "name": "subnet1",
                     "properties": {
-                      "addressPrefix": "[parameters('vnetSubIPs')]",
+                      "addressPrefix": "[variables('vnetSubIPs')]",
                       "networkSecurityGroup": {
                         "id": "[parameters('nsg1Id')]"
                       }
@@ -275,13 +253,13 @@
             "value": "[reference(extensionResourceId(resourceGroup().id, 'Microsoft.Resources/deployments', 'vnet1'), '2019-10-01').outputs.vnetId.value]"
           },
           "vmSize": {
-            "value": "[variables('Size')]"
+            "value": "[variables('vmHWSize')[parameters('VMSize')].value]"
           },
           "OperatingSystem": {
-            "value": "[variables('VM_Images').Client.Publisher.value]"
+            "value": "[variables('VM_Images')[parameters('OperatingSystem')]]"
           },
           "License": {
-            "value": "[variables('License').Multi]"
+            "value": "[variables('License')[parameters('OperatingSystem')].License]"
           }
         },
         "template": {

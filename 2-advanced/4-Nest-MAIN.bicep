@@ -3,20 +3,33 @@ param adminUserName string = 'lntad'
 param adminPassword string {
   secure: true
 }
-param vnetIPs array = [
-  '10.0.0.0/8'
-  '10.1.0.0/8'
-  '172.18.0.0/16'
-  '172.19.0.0/16'
-  '192.168.0.0/24'
-  '192.168.1.0/24'
-]
-param VMSize array = [
-  'Small'
-  'Medium'
-  'Large'
-]
-param OperatingSystem string = 'Client'
+param vnetIPs string {
+   default: '10.0.0.0/8'
+   allowed:[
+    '10.0.0.0/8'
+    '10.1.0.0/8'
+    '172.18.0.0/16'
+    '172.19.0.0/16'
+    '192.168.0.0/24'
+    '192.168.1.0/24'
+   ]
+}
+param VMSize string {
+  default: 'Small'
+  allowed:[
+    'Small'
+    'Medium'
+    'Large'
+  ]
+}
+param OperatingSystem string {
+  default: 'Client'
+  allowed:[
+    'Client'
+    'Server'
+  ]
+}
+
 
 var vnetName = '${Prefix}vnet1' 
 var nsgName = '${Prefix}nsg1'
@@ -34,52 +47,27 @@ var vmHWSize = {
 }
 var VM_Images = {
   Client: {
-    Publisher:{
-      name: 'publisher'
-      value: 'microsoftwindowsdesktop'
+    Publisher:'microsoftwindowsdesktop'
+    offer: 'office-365'
+    sku: '20h1-evd-o365pp'
+    version: 'latest'
     }
-    offer:{
-      name: 'offer'
-      value: 'office-365'
-    }
-    sku:{
-      name: 'sku'
-      value: '20h1-evd-o365pp'
-    }
-    version:{
-      name: 'version'
-      value: 'latest'
-    }
-  }
   Server: {
-    Publisher:{      
-      value: 'MicrosoftWindowsServer'
-    }
-    offer:{      
-      value: 'WindowsServer'
-    }
-    sku:{      
-      value: '2019-Datacenter-smalldisk'
-    }
-    version:{      
-      value: 'latest'
-    }
-  }
-  
+    Publisher:'MicrosoftWindowsServer'
+    offer: 'WindowsServer'
+    sku: '2019-Datacenter-smalldisk'
+    version: 'latest'
+    }  
 }
 var License = {
-  Server:{    
-    value: 'Windows_Server'
+  Server:{
+    License: 'Windows_Server'
   }
-  Client: {    
-    value: 'Windows_Client'
-  }
-  Multi: {    
-    value: 'Windows_Client'
+  Client: {
+    License: 'Windows_Client' 
   }
 }
-var Size = '${vmHWSize}${VMSize}'
-var test = VM_Images[OperatingSystem].Publisher
+
 
 module NSG './4-NEST-NSG.bicep' = {
   name: 'nsg1'
@@ -95,9 +83,8 @@ module VNET './4-NEST-VNET.bicep' = {
     Prefix: Prefix
     location: resourceGroup().location
     vnetName:vnetName
-    vnetIPs: vnetIPs    
-    vnetSubIPs: '10.0.50.0/24'
-    nsg1Id:NSG.outputs.nsg1Id
+    vnetIPs: vnetIPs
+    nsg1Id:NSG.outputs.nsg1Id    
   } 
   dependsOn: [
     NSG
@@ -112,9 +99,9 @@ module VM './4-NEST-VM.bicep' = {
     Prefix:Prefix
     vnetId:VNET.outputs.vnetId
     subnetId:VNET.outputs.vnetId
-    vmSize:Size
-    OperatingSystem: VM_Images.Client.Publisher.value
-    License: License.Multi
+    vmSize:vmHWSize[VMSize].value
+    OperatingSystem: VM_Images[OperatingSystem]
+    License: License[OperatingSystem].License
 
   }
   dependsOn:[
