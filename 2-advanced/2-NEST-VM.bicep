@@ -3,28 +3,27 @@ param adminUserName string
 param adminPassword string {
   secure: true
 }
-param OperatingSystem string
-param License object
-param vnetId string
+param OperatingSystem object
+param License string
 param subnetId string
-param location string
 param vmSize string
-
 var avsetName = '${Prefix}avset1'
 var vmName = '${Prefix}vm1'
 var nicName = '${Prefix}nic1'
-
-resource avset1 'Microsoft.Compute/availabilitySets@2020-06-01' = {
+resource avset1 'Microsoft.Compute/availabilitySets@2019-07-01' = {
   name: avsetName
-  location:location
+  location:resourceGroup().location
   properties:{
-    platformFaultDomainCount: 5
+    platformFaultDomainCount: 3
     platformUpdateDomainCount: 2
-  }  
+  }
+  sku:{
+    name: 'Aligned'
+  }   
 }
 resource nic1 'Microsoft.Network/networkInterfaces@2020-06-01' = {
   name: nicName
-  location:location
+  location:resourceGroup().location
   properties:{
     ipConfigurations:[
       {
@@ -39,10 +38,13 @@ resource nic1 'Microsoft.Network/networkInterfaces@2020-06-01' = {
       }
     ]
   }
+  dependsOn:[
+    avset1
+  ]
 }
 resource vm1 'Microsoft.Compute/virtualMachines@2020-06-01' = {
   name:vmName
-  location:location
+  location:resourceGroup().location
   properties:{
     availabilitySet:{
       id:avset1.id
@@ -79,12 +81,13 @@ resource vm1 'Microsoft.Compute/virtualMachines@2020-06-01' = {
         osType:'Windows'        
       }
       imageReference:{
-        publisher:OperatingSystem
-        offer:OperatingSystem
-        sku:OperatingSystem
-        version:OperatingSystem
+        publisher:OperatingSystem.publisher
+        offer:OperatingSystem.offer
+        sku:OperatingSystem.sku
+        version:OperatingSystem.version
       }
     }
+    licenseType: License
   }
   dependsOn:[
     avset1

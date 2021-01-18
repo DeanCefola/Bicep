@@ -4,12 +4,12 @@ param adminPassword string {
   secure: true
 }
 param vnetIPs string {
-   default: '10.0.0.0/8'
+   default: '10.0.0.0/16'
    allowed:[
-    '10.0.0.0/8'
-    '10.1.0.0/8'
-    '172.18.0.0/16'
-    '172.19.0.0/16'
+    '10.0.0.0/16'
+    '10.1.0.0/16'
+    '172.18.0.0/22'
+    '172.19.0.0/22'
     '192.168.0.0/24'
     '192.168.1.0/24'
    ]
@@ -29,8 +29,6 @@ param OperatingSystem string {
     'Server'
   ]
 }
-
-
 var vnetName = '${Prefix}vnet1' 
 var nsgName = '${Prefix}nsg1'
 var vmName = '${Prefix}vm1'
@@ -67,22 +65,16 @@ var License = {
     License: 'Windows_Client' 
   }
 }
-
-
-module NSG './4-NEST-NSG.bicep' = {
+module NSG './2-NEST-NSG.bicep' = {
   name: 'nsg1'
   params:{
-    Prefix:Prefix
-    name:nsgName
-    location: resourceGroup().location
+    Prefix:Prefix    
   } 
 }
-module VNET './4-NEST-VNET.bicep' = {
+module VNET './2-NEST-VNET.bicep' = {
   name: 'vnet1'
   params:{
-    Prefix: Prefix
-    location: resourceGroup().location
-    vnetName:vnetName
+    Prefix: Prefix    
     vnetIPs: vnetIPs
     nsg1Id:NSG.outputs.nsg1Id    
   } 
@@ -90,21 +82,18 @@ module VNET './4-NEST-VNET.bicep' = {
     NSG
   ]
 }
-module VM './4-NEST-VM.bicep' = {
+module VM './2-NEST-VM.bicep' = {
   name: 'vm1'
   params:{
+    Prefix:Prefix    
     adminUserName:adminUserName
     adminPassword:adminPassword
-    location:resourceGroup().location
-    Prefix:Prefix
-    vnetId:VNET.outputs.vnetId
-    subnetId:VNET.outputs.vnetId
+    subnetId:VNET.outputs.subnetId
     vmSize:vmHWSize[VMSize].value
     OperatingSystem: VM_Images[OperatingSystem]
-    License: License[OperatingSystem].License
-
-  }
-  dependsOn:[
+    License: License[OperatingSystem].License    
+  }  
+  dependsOn:[    
     VNET
   ]
 }
