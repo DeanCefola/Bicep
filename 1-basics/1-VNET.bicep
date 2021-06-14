@@ -13,8 +13,7 @@ var nsgName = '${Prefix}nsg1'
 resource nsg1 'Microsoft.Network/networkSecurityGroups@2020-06-01' = {
   location: resourceGroup().location
   name: nsgName
-}
-  
+}  
 resource vnet1 'Microsoft.Network/virtualNetworks@2020-06-01' = {
   name: vnetName
   location: resourceGroup().location
