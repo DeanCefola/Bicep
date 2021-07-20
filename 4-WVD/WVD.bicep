@@ -14,7 +14,7 @@ resource applicationGroup 'Microsoft.DesktopVirtualization/applicationgroups@201
   properties: {
     friendlyName: 'Bicep-Apps'
     applicationGroupType: 'RemoteApp'
-    hostPoolArmPath: resourceId('Microsoft.DesktopVirtualization/hostpools', 'REQUIRED')
+    hostPoolArmPath: resourceId('Microsoft.DesktopVirtualization/hostpools', 'Bicep-Pool')
   }
 }
 resource workSpace 'Microsoft.DesktopVirtualization/workspaces@2019-12-10-preview' = {
