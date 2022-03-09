@@ -9,14 +9,15 @@ param vnetSubIPs string = '10.0.50.0/24'
 // VARIABLES //
 var vnetName = '${Prefix}vnet1' 
 var nsgName = '${Prefix}nsg1'
+var location = resourceGroup().location
 // RESOURCES //
 resource nsg1 'Microsoft.Network/networkSecurityGroups@2020-06-01' = {
-  location: resourceGroup().location
+  location: location
   name: nsgName
 }  
 resource vnet1 'Microsoft.Network/virtualNetworks@2020-06-01' = {
   name: vnetName
-  location: resourceGroup().location
+  location: location
   properties:{
     addressSpace:{
       addressPrefixes: vnetIPs
